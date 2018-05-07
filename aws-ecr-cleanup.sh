@@ -24,7 +24,14 @@ if [ $(( $ImageCount - $retainCount )) \< 1 ] ; then
    echo "No action require"
    exit 0
 fi
-aws ecr describe-images --repository-name ${repoName} --region ${awsRregion} --output text | awk {'print $3'} | grep -v ^$ | sort | tail -n $(( $ImageCount - $retainCount )) > oldImageTimeStamp.txt
+aws ecr describe-images --repository-name ${repoName} --region ${awsRregion} --output text | awk {'print $3'} | grep -v ^$ | sort | head -n $(( $ImageCount - $retainCount )) > oldImageTimeStamp.txt
+
+echo -n "Oldest image going to delete is of :"
+date -d @$(head -1 oldImageTimeStamp.txt)
+
+echo -n "Recent image going to delete is of :"
+date -d @$(tail -1 oldImageTimeStamp.txt)
+
 
 echo "Deleting old images .."
 for i in `cat oldImageTimeStamp.txt`
