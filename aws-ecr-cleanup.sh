@@ -15,6 +15,11 @@ repoName=$1
 retainCount=$2
 ## Set the region in the parameters below.
 awsRregion=us-east-1
+# set YES/NO
+# Any value other than NO will not delete any image
+#dryRun=YES
+dryRun=NO
+
 
 ImageCount=`aws ecr describe-images --repository-name ${repoName} --region ${awsRregion} --output text | awk {'print $3'} | grep -v ^$ | sort |wc -l`
 echo "Total Image = $ImageCount"
@@ -32,10 +37,13 @@ date -d @$(head -1 oldImageTimeStamp.txt)
 echo -n "Recent image going to delete is of :"
 date -d @$(tail -1 oldImageTimeStamp.txt)
 
-
-echo "Deleting old images .."
-for i in `cat oldImageTimeStamp.txt`
-do
-oldImageDigest=`aws ecr describe-images --repository-name ${repoName} --region ${awsRregion} --output text | grep -w $i | awk {'print $2'}`
-aws ecr batch-delete-image --repository-name ${repoName} --image-ids imageDigest=${oldImageDigest}
-done
+if [ $dryRun == 'NO' ];then
+  echo "Deleting old images .."
+  for i in `cat oldImageTimeStamp.txt`
+  do
+    oldImageDigest=`aws ecr describe-images --repository-name ${repoName} --region ${awsRregion} --output text | grep -w $i | awk {'print $2'}`
+    aws ecr batch-delete-image --repository-name ${repoName} --image-ids imageDigest=${oldImageDigest}
+  done
+else
+    echo "Running is dry run mode"
+fi
