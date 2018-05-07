@@ -1,0 +1,3 @@
+aws-ecr-repo1
+aws-ecr-repo2
+aws-ecr-repo3
